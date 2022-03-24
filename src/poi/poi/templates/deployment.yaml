@@ -33,21 +33,15 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: secrets-store01-inline
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
           env:
-            - name: SQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: db
-                  key: username
-                  optional: false
-            - name: SQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db
-                  key: password
-                  optional: false
             - name: SQL_SERVER
               value: sqlservertoe2648.database.windows.net
+            - name: CONFIG_FILES_PATH
+              value: /mnt/secrets-store
           ports:
             - name: http
               containerPort: 80
@@ -74,3 +68,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: secrets-store01-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-kvname-user-msi"

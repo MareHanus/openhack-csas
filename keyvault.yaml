@@ -1,0 +1,27 @@
+# This is a SecretProviderClass example using user-assigned identity to access your key vault
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-kvname-user-msi
+  namespace: api
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"          # Set to true for using managed identity
+    userAssignedIdentityID: dcd69e2b-0d19-45f8-87e2-5352391fdf29   # Set the clientID of the user-assigned managed identity to use
+    keyvaultName: OpenHackKeys        # Set to the name of your key vault
+    cloudName: ""                         # [OPTIONAL for Azure] if not provided, the Azure environment defaults to AzurePublicCloud
+    objects:  |
+      array:
+        - |
+          objectAlias: SQL_PASSWORD
+          objectName: password
+          objectType: secret              # object types: secret, key, or cert
+          objectVersion: ""               # [OPTIONAL] object versions, default to latest if empty
+        - |
+          objectAlias: SQL_USER
+          objectName: username
+          objectType: secret
+          objectVersion: ""
+    tenantId: e1fb0600-4764-46cb-8818-c874b1891122                 # The tenant ID of the key vault
